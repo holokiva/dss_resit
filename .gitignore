@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/*.suo
+**/*.swp
+**/*.db
+**/.DS_Store
+**/node_modules/
+backend/MovieWatchlist.Api/appsettings.Local.json

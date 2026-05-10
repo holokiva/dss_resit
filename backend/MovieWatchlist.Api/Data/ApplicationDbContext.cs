@@ -19,5 +19,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.DisplayName).HasMaxLength(40).IsRequired();
             entity.Property(x => x.PasswordHash).IsRequired();
         });
+
+        modelBuilder.Entity<WatchlistItem>(entity =>
+        {
+            entity.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            entity.Property(x => x.Notes).HasMaxLength(1000);
+            entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
+            entity.HasIndex(x => new { x.UserId, x.CreatedAtUtc });
+        });
     }
 }

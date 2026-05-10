@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: moviewatchlist_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - moviewatchlist_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d moviewatchlist_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:4058
+      ASPNETCORE_ENVIRONMENT: Development
+      UseInMemoryDatabase: "false"
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=moviewatchlist_db;Username=postgres;Password=postgres
+      Jwt__Issuer: MovieWatchlist.Api
+      Jwt__Audience: MovieWatchlist.Client
+      Jwt__Key: super_secret_jwt_key_for_local_dev_change_me
+      Cors__Origins__0: http://localhost:5173
+      Cors__Origins__1: http://localhost:4173
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4058:4058"
+
+volumes:
+  moviewatchlist_pg:

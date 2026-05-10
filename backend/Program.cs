@@ -46,6 +46,25 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+    {
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+        else
+        {
+            policy.AllowAnyOrigin();
+        }
+
+        policy.AllowAnyHeader();
+        policy.AllowAnyMethod();
+    });
+});
+
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.SectionName));
 
@@ -128,7 +147,27 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.EnsureCreated();
+        if (useInMemoryDatabase)
+        {
+            dbContext.Database.EnsureCreated();
+        }
+        else
+        {
+            var delay = TimeSpan.FromSeconds(1);
+            for (var attempt = 1; attempt <= 10; attempt++)
+            {
+                try
+                {
+                    dbContext.Database.EnsureCreated();
+                    break;
+                }
+                catch when (attempt < 10)
+                {
+                    await Task.Delay(delay);
+                    delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 10));
+                }
+            }
+        }
     }
     catch (Exception exception)
     {
@@ -138,6 +177,8 @@ using (var scope = app.Services.CreateScope())
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
+app.UseCors("frontend");
 app.UseSwagger();
 app.UseSwaggerUI();
 

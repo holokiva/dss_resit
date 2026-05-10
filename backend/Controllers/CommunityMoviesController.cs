@@ -17,8 +17,23 @@ public sealed class CommunityMoviesController(ApplicationDbContext dbContext) : 
     {
         var items = await dbContext.CommunityMovies
             .AsNoTracking()
-            .OrderByDescending(x => x.CreatedAtUtc)
-            .Select(ToResponseExpression)
+            .Join(
+                dbContext.Users.AsNoTracking(),
+                movie => movie.UserId,
+                user => user.Id,
+                (movie, user) => new { movie, user })
+            .OrderByDescending(x => x.movie.CreatedAtUtc)
+            .Select(x => new CommunityMovieResponseDto(
+                x.movie.Id,
+                x.movie.Title,
+                x.movie.Director,
+                x.movie.ReleaseYear,
+                x.movie.Genre,
+                x.movie.Description,
+                x.user.Id,
+                x.user.DisplayName,
+                x.movie.CreatedAtUtc,
+                x.movie.UpdatedAtUtc ?? x.movie.CreatedAtUtc))
             .ToListAsync(cancellationToken);
 
         return Ok(items);
@@ -33,7 +48,21 @@ public sealed class CommunityMoviesController(ApplicationDbContext dbContext) : 
         var item = await dbContext.CommunityMovies
             .AsNoTracking()
             .Where(x => x.Id == id)
-            .Select(ToResponseExpression)
+            .Join(
+                dbContext.Users.AsNoTracking(),
+                movie => movie.UserId,
+                user => user.Id,
+                (movie, user) => new CommunityMovieResponseDto(
+                    movie.Id,
+                    movie.Title,
+                    movie.Director,
+                    movie.ReleaseYear,
+                    movie.Genre,
+                    movie.Description,
+                    user.Id,
+                    user.DisplayName,
+                    movie.CreatedAtUtc,
+                    movie.UpdatedAtUtc ?? movie.CreatedAtUtc))
             .FirstOrDefaultAsync(cancellationToken);
 
         if (item is null)
@@ -72,7 +101,13 @@ public sealed class CommunityMoviesController(ApplicationDbContext dbContext) : 
         dbContext.CommunityMovies.Add(item);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, ToResponse(item));
+        var displayName = await dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Id == userId.Value)
+            .Select(x => x.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken) ?? "Unknown";
+
+        return CreatedAtAction(nameof(GetById), new { id = item.Id }, ToResponse(item, displayName));
     }
 
     [Authorize]
@@ -114,7 +149,13 @@ public sealed class CommunityMoviesController(ApplicationDbContext dbContext) : 
         item.UpdatedAtUtc = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        return Ok(ToResponse(item));
+        var displayName = await dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Id == userId.Value)
+            .Select(x => x.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken) ?? "Unknown";
+
+        return Ok(ToResponse(item, displayName));
     }
 
     [Authorize]
@@ -150,29 +191,18 @@ public sealed class CommunityMoviesController(ApplicationDbContext dbContext) : 
         return NoContent();
     }
 
-    private static readonly System.Linq.Expressions.Expression<Func<CommunityMovie, CommunityMovieResponseDto>> ToResponseExpression =
-        x => new CommunityMovieResponseDto(
-            x.Id,
-            x.Title,
-            x.Director,
-            x.Genre,
-            x.Description,
-            x.ReleaseYear,
-            x.UserId,
-            x.CreatedAtUtc,
-            x.UpdatedAtUtc);
-
-    private static CommunityMovieResponseDto ToResponse(CommunityMovie item) =>
+    private static CommunityMovieResponseDto ToResponse(CommunityMovie item, string createdByDisplayName) =>
         new(
             item.Id,
             item.Title,
             item.Director,
+            item.ReleaseYear,
             item.Genre,
             item.Description,
-            item.ReleaseYear,
             item.UserId,
+            createdByDisplayName,
             item.CreatedAtUtc,
-            item.UpdatedAtUtc);
+            item.UpdatedAtUtc ?? item.CreatedAtUtc);
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();

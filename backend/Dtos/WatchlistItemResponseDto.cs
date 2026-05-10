@@ -5,9 +5,11 @@ namespace MovieWatchlist.Api.Dtos;
 public sealed record WatchlistItemResponseDto(
     Guid Id,
     string Title,
-    int Year,
-    int Rating,
+    string? Director,
+    int? ReleaseYear,
+    string? Genre,
     WatchlistStatus Status,
+    int? Rating,
     string? Notes,
-    DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc);
+    DateTime CreatedAt,
+    DateTime UpdatedAt);

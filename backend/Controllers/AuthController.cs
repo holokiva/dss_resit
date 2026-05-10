@@ -58,7 +58,7 @@ public sealed class AuthController(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var token = jwtTokenService.GenerateToken(user.Id, user.Email, user.DisplayName);
-        var response = new AuthResponseDto(token.AccessToken, token.ExpiresAtUtc, new UserMeDto(user.Id, user.Email, user.DisplayName));
+        var response = new AuthResponseDto(token.AccessToken, new UserMeDto(user.Id, user.Email, user.DisplayName));
 
         return StatusCode(StatusCodes.Status201Created, response);
     }
@@ -94,7 +94,7 @@ public sealed class AuthController(
         }
 
         var token = jwtTokenService.GenerateToken(user.Id, user.Email, user.DisplayName);
-        return Ok(new AuthResponseDto(token.AccessToken, token.ExpiresAtUtc, new UserMeDto(user.Id, user.Email, user.DisplayName)));
+        return Ok(new AuthResponseDto(token.AccessToken, new UserMeDto(user.Id, user.Email, user.DisplayName)));
     }
 
     [Authorize]

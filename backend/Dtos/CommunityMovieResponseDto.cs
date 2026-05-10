@@ -4,9 +4,10 @@ public sealed record CommunityMovieResponseDto(
     Guid Id,
     string Title,
     string? Director,
+    int? ReleaseYear,
     string? Genre,
     string? Description,
-    int ReleaseYear,
     Guid CreatedByUserId,
-    DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc);
+    string CreatedByDisplayName,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);

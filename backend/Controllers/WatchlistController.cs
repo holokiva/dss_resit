@@ -73,7 +73,9 @@ public sealed class WatchlistController(ApplicationDbContext dbContext) : BaseAp
         {
             UserId = userId.Value,
             Title = request.Title.Trim(),
-            Year = request.Year,
+            Director = string.IsNullOrWhiteSpace(request.Director) ? null : request.Director.Trim(),
+            ReleaseYear = request.ReleaseYear,
+            Genre = string.IsNullOrWhiteSpace(request.Genre) ? null : request.Genre.Trim(),
             Rating = request.Rating,
             Status = request.Status,
             Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim()
@@ -111,7 +113,9 @@ public sealed class WatchlistController(ApplicationDbContext dbContext) : BaseAp
         }
 
         item.Title = request.Title.Trim();
-        item.Year = request.Year;
+        item.Director = string.IsNullOrWhiteSpace(request.Director) ? null : request.Director.Trim();
+        item.ReleaseYear = request.ReleaseYear;
+        item.Genre = string.IsNullOrWhiteSpace(request.Genre) ? null : request.Genre.Trim();
         item.Rating = request.Rating;
         item.Status = request.Status;
         item.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
@@ -152,12 +156,14 @@ public sealed class WatchlistController(ApplicationDbContext dbContext) : BaseAp
         new(
             item.Id,
             item.Title,
-            item.Year,
-            item.Rating,
+            item.Director,
+            item.ReleaseYear,
+            item.Genre,
             item.Status,
+            item.Rating,
             item.Notes,
             item.CreatedAtUtc,
-            item.UpdatedAtUtc);
+            item.UpdatedAtUtc ?? item.CreatedAtUtc);
 
     private static ProblemDetails UnauthorizedProblem() =>
         new()

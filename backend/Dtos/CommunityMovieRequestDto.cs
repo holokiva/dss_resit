@@ -17,12 +17,12 @@ public sealed class CommunityMovieRequestDto : IValidatableObject
     [StringLength(1500)]
     public string? Description { get; set; }
 
-    public int ReleaseYear { get; set; }
+    public int? ReleaseYear { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var maxYear = DateTime.UtcNow.Year + 2;
-        if (ReleaseYear < 1888 || ReleaseYear > maxYear)
+        if (ReleaseYear is not null && (ReleaseYear < 1888 || ReleaseYear > maxYear))
         {
             yield return new ValidationResult(
                 $"ReleaseYear must be between 1888 and {maxYear}.",

@@ -31,14 +31,16 @@ To use PostgreSQL locally, set:
 
 ### migrations
 
-This project can use EF Core migrations.
+This project uses EF Core migrations. With PostgreSQL (`UseInMemoryDatabase=false`), the API applies pending migrations on startup (`Database.Migrate()`).
+
+Design-time tooling uses `ApplicationDbContextFactory` (Npgsql) so `dotnet ef` works without running the app.
 
 - install tools (once):
   - `dotnet tool install --global dotnet-ef`
 - create a migration:
   - `cd backend`
-  - `dotnet ef migrations add initial_create`
-- apply migrations:
+  - `dotnet ef migrations add <name>`
+- apply migrations (optional; startup also migrates):
   - `dotnet ef database update`
 
 ## auth

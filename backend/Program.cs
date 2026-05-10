@@ -158,7 +158,7 @@ using (var scope = app.Services.CreateScope())
             {
                 try
                 {
-                    dbContext.Database.EnsureCreated();
+                    await dbContext.Database.MigrateAsync();
                     break;
                 }
                 catch when (attempt < 10)

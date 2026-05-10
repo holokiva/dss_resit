@@ -7,6 +7,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
+    public DbSet<CommunityMovie> CommunityMovies => Set<CommunityMovie>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(x => x.Notes).HasMaxLength(1000);
             entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
             entity.HasIndex(x => new { x.UserId, x.CreatedAtUtc });
+        });
+
+        modelBuilder.Entity<CommunityMovie>(entity =>
+        {
+            entity.Property(x => x.Title).HasMaxLength(120).IsRequired();
+            entity.Property(x => x.Director).HasMaxLength(80);
+            entity.Property(x => x.Genre).HasMaxLength(40);
+            entity.Property(x => x.Description).HasMaxLength(1500);
+            entity.HasIndex(x => x.CreatedAtUtc);
+            entity.HasIndex(x => x.UserId);
         });
     }
 }
